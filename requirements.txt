@@ -11,12 +11,12 @@
 # Qiskit: IBM's open-source quantum computing SDK
 # Used to BUILD quantum circuits (define gates, qubits, measurements)
 # Think of it as the "language" for writing quantum programs
-qiskit==0.45.3
+qiskit==2.3.0
 
 # Qiskit Aer: High-performance quantum circuit simulator
 # Used to SIMULATE circuits on your classical CPU
 # Without this, you'd need a real quantum computer to run your circuits
-qiskit-aer==0.13.3
+qiskit-aer==0.17.2
 
 # ------------------------------------------
 # WEB FRAMEWORK
@@ -25,12 +25,12 @@ qiskit-aer==0.13.3
 # Flask: Lightweight Python web framework
 # Powers our REST API — handles HTTP requests and sends back JSON
 # Chosen over Django because it's simpler and we only need an API
-flask==3.0.0
+flask==3.1.3
 
 # Flask-CORS: Cross-Origin Resource Sharing middleware
 # REQUIRED for the browser to call our API
 # Without this, browsers block JS fetch() calls to different ports (security policy)
-flask-cors==4.0.0
+flask-cors==6.0.2
 
 # ------------------------------------------
 # UTILITIES
@@ -39,7 +39,7 @@ flask-cors==4.0.0
 # python-dotenv: Load config from .env files
 # Lets us set SECRET_KEY, DEBUG mode, etc. without hardcoding values
 # Production best practice: secrets never go in source code
-python-dotenv==1.0.0
+python-dotenv==1.2.2
 
 # ------------------------------------------
 # NOTE: No database driver needed!
