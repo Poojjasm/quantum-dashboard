@@ -1,0 +1,106 @@
+# =============================================
+# .gitignore for Quantum Dashboard Project
+# =============================================
+
+# ------------------------------------------
+# PYTHON
+# ------------------------------------------
+# Compiled bytecode (auto-generated, not source)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments (local Python sandbox)
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Package build artifacts
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# pip logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ------------------------------------------
+# ENVIRONMENT & SECRETS
+# ------------------------------------------
+# Never commit API keys, passwords, secrets!
+.env
+.env.local
+.env.*.local
+.env.production
+
+# ------------------------------------------
+# DATABASE
+# ------------------------------------------
+# SQLite database is auto-generated at runtime
+# Do NOT commit it — it's local state
+*.db
+*.sqlite
+*.sqlite3
+data/quantum_circuits.db
+
+# ------------------------------------------
+# OPERATING SYSTEM
+# ------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ------------------------------------------
+# IDEs & EDITORS
+# ------------------------------------------
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, IntelliJ)
+.idea/
+*.iml
+*.iws
+
+# Vim
+*.swp
+*.swo
+
+# ------------------------------------------
+# TESTING & COVERAGE
+# ------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+
+# ------------------------------------------
+# JUPYTER (if you explore with notebooks)
+# ------------------------------------------
+.ipynb_checkpoints/
+*.ipynb
+
+# ------------------------------------------
+# LOGS
+# ------------------------------------------
+*.log
+logs/
