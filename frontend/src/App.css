@@ -313,6 +313,169 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Sweep Button ──────────────────────────────────────────────── */
+.btn-sweep {
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+  padding: 0.625rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-sweep:hover:not(:disabled) {
+  background: rgba(0, 210, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.btn-sweep:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-sweep--loading {
+  border-color: var(--color-text-muted);
+  color: var(--color-text-muted);
+}
+
+/* ── Fidelity / Sweep Section ──────────────────────────────────── */
+.sweep-section-wrapper {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.fidelity-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.fidelity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.fidelity-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+.fidelity-chart-wrapper {
+  height: 260px;
+  margin-bottom: 1.25rem;
+}
+
+/* Crossover badge — shows where fidelity drops below 50% */
+.crossover-badge {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.875rem;
+  text-align: center;
+  min-width: 100px;
+}
+
+.crossover-badge--resilient {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: var(--color-success);
+}
+
+.crossover-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.125rem;
+}
+
+.crossover-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--color-danger);
+}
+
+.crossover-badge--resilient .crossover-value {
+  color: var(--color-success);
+  font-size: 0.9375rem;
+}
+
+/* Sweep insights — compact data table below the chart */
+.sweep-insights {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sweep-point {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.375rem 0.625rem;
+  min-width: 52px;
+}
+
+.sweep-point__rate {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+}
+
+.sweep-point__fidelity {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+/* Progress bar during sweep */
+.sweep-progress-bar {
+  height: 6px;
+  background: var(--color-surface-2);
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.sweep-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+.sweep-progress-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.sweep-progress-text {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 /* ── Results Panel ─────────────────────────────────────────────── */
 .results-panel {
   background: var(--color-surface);

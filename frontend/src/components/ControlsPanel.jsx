@@ -9,11 +9,13 @@
  *   - Run Simulation button
  *
  * Props:
- *   circuits    — array from /api/circuits
- *   loading     — bool; disables form while simulation runs
- *   loadParams  — {circuit, error_rate, shots} set when user clicks a history
- *                 item; this component syncs its local state to match
- *   onRun       — callback(params) called on form submit
+ *   circuits     — array from /api/circuits
+ *   loading      — bool; disables form while simulation runs
+ *   sweepLoading — bool; disables form while sweep is running
+ *   loadParams   — {circuit, error_rate, shots} set when user clicks a history
+ *                  item; this component syncs its local state to match
+ *   onRun        — callback(params) called on form submit
+ *   onSweep      — callback(circuit, circuitName) triggers noise sweep
  */
 
 import { useState, useEffect } from 'react'
@@ -35,7 +37,7 @@ const NOISE_PRESETS = [
   { label: 'Extreme',  value: 0.20, title: 'Nearly random results' },
 ]
 
-export default function ControlsPanel({ circuits, loading, loadParams, onRun }) {
+export default function ControlsPanel({ circuits, loading, sweepLoading, loadParams, onRun, onSweep }) {
   const [circuit, setCircuit]     = useState('bell')
   const [errorRate, setErrorRate] = useState(0.05)
   const [shots, setShots]         = useState(1024)
@@ -51,10 +53,17 @@ export default function ControlsPanel({ circuits, loading, loadParams, onRun }) 
     setShots(loadParams.shots)
   }, [loadParams])
 
+  const isDisabled = loading || sweepLoading
+
   function handleSubmit(e) {
     e.preventDefault()
     const clampedShots = Math.max(100, Math.min(8192, shots || 1024))
     onRun({ circuit, error_rate: errorRate, shots: clampedShots })
+  }
+
+  function handleSweep() {
+    const circuitName = circuits.find(c => c.id === circuit)?.name || circuit
+    onSweep(circuit, circuitName)
   }
 
   function errorRateColor(p) {
@@ -81,7 +90,7 @@ export default function ControlsPanel({ circuits, loading, loadParams, onRun }) 
             className="form-select"
             value={circuit}
             onChange={e => setCircuit(e.target.value)}
-            disabled={loading}
+            disabled={isDisabled}
           >
             {circuits.length === 0 ? (
               <option value="">Loading…</option>
@@ -115,7 +124,7 @@ export default function ControlsPanel({ circuits, loading, loadParams, onRun }) 
                 type="button"
                 className={`preset-btn ${errorRate === p.value ? 'preset-btn--active' : ''}`}
                 onClick={() => setErrorRate(p.value)}
-                disabled={loading}
+                disabled={isDisabled}
                 title={p.title}
               >
                 {p.label}
@@ -132,7 +141,7 @@ export default function ControlsPanel({ circuits, loading, loadParams, onRun }) 
             step="0.005"
             value={errorRate}
             onChange={e => setErrorRate(parseFloat(e.target.value))}
-            disabled={loading}
+            disabled={isDisabled}
           />
           <div className="range-labels">
             <span>0% (ideal)</span>
@@ -154,7 +163,7 @@ export default function ControlsPanel({ circuits, loading, loadParams, onRun }) 
             step="128"
             value={shots}
             onChange={e => setShots(parseInt(e.target.value, 10) || 1024)}
-            disabled={loading}
+            disabled={isDisabled}
           />
           <p className="form-hint">
             More shots = more accurate statistics. Range: 100–8192.
@@ -165,7 +174,7 @@ export default function ControlsPanel({ circuits, loading, loadParams, onRun }) 
         <button
           type="submit"
           className={`btn-run ${loading ? 'btn-run--loading' : ''}`}
-          disabled={loading || circuits.length === 0}
+          disabled={isDisabled || circuits.length === 0}
         >
           {loading ? (
             <>
@@ -174,6 +183,27 @@ export default function ControlsPanel({ circuits, loading, loadParams, onRun }) 
             </>
           ) : (
             'Run Simulation'
+          )}
+        </button>
+
+        {/* ── Noise Sweep ────────────────────────────────────────── */}
+        <button
+          type="button"
+          className={`btn-sweep ${sweepLoading ? 'btn-sweep--loading' : ''}`}
+          disabled={isDisabled || circuits.length === 0}
+          onClick={handleSweep}
+          title="Run 8 simulations across all error rates and plot the fidelity degradation curve"
+        >
+          {sweepLoading ? (
+            <>
+              <span className="spinner" aria-hidden="true" />
+              Sweeping…
+            </>
+          ) : (
+            <>
+              <span aria-hidden="true">📈</span>
+              Run Noise Sweep
+            </>
           )}
         </button>
 

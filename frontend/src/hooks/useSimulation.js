@@ -148,10 +148,66 @@ export function useSimulation() {
     }
   }, [fetchHistory])
 
+  // ── Noise Sweep ──────────────────────────────────────────────
+  // Runs 8 simulations across the full error rate range for a given
+  // circuit, one at a time so we can show live progress.
+  // Result: sweepData = { circuit, circuitName, points: [{errorRate, fidelity},...] }
+  const [sweepData, setSweepData]         = useState(null)
+  const [sweepLoading, setSweepLoading]   = useState(false)
+  const [sweepProgress, setSweepProgress] = useState(0)  // 0–8
+
+  // The 8 error rates we sweep across.
+  // Denser at the low end where the interesting physics happens.
+  const SWEEP_RATES = [0, 0.005, 0.01, 0.02, 0.05, 0.10, 0.15, 0.20]
+
+  const runSweep = useCallback(async (circuit, circuitName) => {
+    setSweepLoading(true)
+    setSweepProgress(0)
+    setSweepData(null)
+    setError(null)
+
+    const points = []
+
+    for (let i = 0; i < SWEEP_RATES.length; i++) {
+      const rate = SWEEP_RATES[i]
+      try {
+        const resp = await fetch(`${API_BASE}/api/simulate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          // 512 shots per sweep point — fast but statistically meaningful
+          body: JSON.stringify({ circuit, error_rate: rate, shots: 512 }),
+        })
+        const data = await resp.json()
+        if (!resp.ok) throw new Error(data.error || `Server error ${resp.status}`)
+
+        // Fidelity = fraction of shots that landed on an ideal (expected) state.
+        // At error_rate=0 this should be ~100%. At 0.20 it should be ~25-50%.
+        const idealStates = new Set(Object.keys(data.ideal_counts))
+        const correctShots = Object.entries(data.counts)
+          .filter(([state]) => idealStates.has(state))
+          .reduce((sum, [, count]) => sum + count, 0)
+        const fidelity = (correctShots / data.shots) * 100
+
+        points.push({ errorRate: rate, fidelity })
+        // Update progress after each point so the UI can show a live counter
+        setSweepProgress(i + 1)
+      } catch (err) {
+        setError(`Sweep failed at ${(rate * 100).toFixed(1)}% error rate: ${err.message}`)
+        setSweepLoading(false)
+        return
+      }
+    }
+
+    setSweepData({ circuit, circuitName, points })
+    fetchHistory()
+    setSweepLoading(false)
+  }, [fetchHistory])
+
   const clearError = useCallback(() => setError(null), [])
 
   return {
     circuits, result, history, loading, error, loadParams,
-    runSimulation, loadSimulation, clearError,
+    sweepData, sweepLoading, sweepProgress,
+    runSimulation, loadSimulation, runSweep, clearError,
   }
 }

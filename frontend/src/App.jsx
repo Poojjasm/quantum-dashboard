@@ -16,9 +16,10 @@
 
 import './App.css'
 import { useSimulation } from './hooks/useSimulation'
-import ControlsPanel from './components/ControlsPanel'
-import ResultsPanel  from './components/ResultsPanel'
-import HistoryPanel  from './components/HistoryPanel'
+import ControlsPanel  from './components/ControlsPanel'
+import ResultsPanel   from './components/ResultsPanel'
+import FidelityChart  from './components/FidelityChart'
+import HistoryPanel   from './components/HistoryPanel'
 
 export default function App() {
   const {
@@ -28,8 +29,12 @@ export default function App() {
     loading,
     error,
     loadParams,
+    sweepData,
+    sweepLoading,
+    sweepProgress,
     runSimulation,
     loadSimulation,
+    runSweep,
     clearError,
   } = useSimulation()
 
@@ -75,11 +80,24 @@ export default function App() {
         <ControlsPanel
           circuits={circuits}
           loading={loading}
+          sweepLoading={sweepLoading}
           loadParams={loadParams}
           onRun={runSimulation}
+          onSweep={runSweep}
         />
         <ResultsPanel result={result} />
       </main>
+
+      {/* ── Noise Sweep Chart ───────────────────────────────────── */}
+      {(sweepData || sweepLoading) && (
+        <div className="sweep-section-wrapper">
+          <FidelityChart
+            sweepData={sweepData}
+            sweepLoading={sweepLoading}
+            sweepProgress={sweepProgress}
+          />
+        </div>
+      )}
 
       {/* ── History ─────────────────────────────────────────────── */}
       <HistoryPanel history={history} onHistoryClick={loadSimulation} />
