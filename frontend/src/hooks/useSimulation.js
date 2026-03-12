@@ -23,6 +23,13 @@ import { useState, useEffect, useCallback } from 'react'
 // In dev, it's empty string — Vite's proxy handles /api/* → localhost:5001.
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
+// Returns a fetch-compatible signal that times out after `ms` milliseconds.
+function makeTimeoutSignal(ms) {
+  const controller = new AbortController()
+  setTimeout(() => controller.abort(), ms)
+  return controller.signal
+}
+
 export function useSimulation() {
   const [circuits, setCircuits]   = useState([])
   const [result, setResult]       = useState(null)
@@ -63,6 +70,7 @@ export function useSimulation() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ circuit, error_rate, shots }),
+        signal: makeTimeoutSignal(30_000),
       })
 
       const data = await response.json()
@@ -117,6 +125,7 @@ export function useSimulation() {
           error_rate: 0,
           shots: data.simulation.shots,
         }),
+        signal: makeTimeoutSignal(30_000),
       })
       const idealData = await idealResp.json()
 
@@ -176,9 +185,15 @@ export function useSimulation() {
           headers: { 'Content-Type': 'application/json' },
           // 512 shots per sweep point — fast but statistically meaningful
           body: JSON.stringify({ circuit, error_rate: rate, shots: 512 }),
+          signal: makeTimeoutSignal(30_000),
         })
         const data = await resp.json()
         if (!resp.ok) throw new Error(data.error || `Server error ${resp.status}`)
+
+        // Validate response shape before using it
+        if (!data.counts || !data.ideal_counts || !data.shots) {
+          throw new Error('Unexpected response from server')
+        }
 
         // Fidelity = fraction of shots that landed on an ideal (expected) state.
         // At error_rate=0 this should be ~100%. At 0.20 it should be ~25-50%.
@@ -192,7 +207,8 @@ export function useSimulation() {
         // Update progress after each point so the UI can show a live counter
         setSweepProgress(i + 1)
       } catch (err) {
-        setError(`Sweep failed at ${(rate * 100).toFixed(1)}% error rate: ${err.message}`)
+        const msg = err?.message || 'Unknown error'
+        setError(`Sweep failed at ${(rate * 100).toFixed(1)}% error rate: ${msg}`)
         setSweepLoading(false)
         return
       }

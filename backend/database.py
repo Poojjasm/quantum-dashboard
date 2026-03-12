@@ -233,6 +233,9 @@ def save_simulation(
         # → inserts 2 rows into results (one per state)
         # → returns 1 (or whatever the next auto-increment ID is)
     """
+    if not counts:
+        raise ValueError("counts must be a non-empty dict")
+
     conn = get_connection()
     cursor = conn.cursor()
 

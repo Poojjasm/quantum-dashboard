@@ -62,6 +62,7 @@ export default function ControlsPanel({ circuits, loading, sweepLoading, loadPar
   }
 
   function handleSweep() {
+    if (!circuits.length) return
     const circuitName = circuits.find(c => c.id === circuit)?.name || circuit
     onSweep(circuit, circuitName)
   }

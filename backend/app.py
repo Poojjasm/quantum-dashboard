@@ -152,7 +152,7 @@ def api_simulate():
     # silent=True returns None instead of raising an exception on bad JSON.
     body = request.get_json(silent=True)
 
-    if not body:
+    if not body or not isinstance(body, dict):
         return _error("Request body must be valid JSON.", "BAD_REQUEST", 400)
 
     # ── Validate: circuit ─────────────────────────────────────────────────────

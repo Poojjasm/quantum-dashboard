@@ -39,13 +39,31 @@ export default function ResultsPanel({ result }) {
 
   const { circuit_name, error_rate, shots, counts, ideal_counts, noise_label } = result
 
+  // Defensive guards: treat missing/null counts as empty objects, shots=0 as 1
+  const safeCounts = counts || {}
+  const safeIdeal  = ideal_counts || {}
+  const safeShots  = shots > 0 ? shots : 1
+
   // Build chart data: all states that appear in either actual or ideal
   const allStates = Array.from(
-    new Set([...Object.keys(counts), ...Object.keys(ideal_counts)])
+    new Set([...Object.keys(safeCounts), ...Object.keys(safeIdeal)])
   ).sort()
 
-  const actualValues = allStates.map(s => counts[s] || 0)
-  const idealValues  = allStates.map(s => ideal_counts[s] || 0)
+  // If there are no states at all, show a fallback rather than crash
+  if (allStates.length === 0) {
+    return (
+      <section className="results-panel results-panel--empty">
+        <div className="empty-state">
+          <div className="empty-state__icon" aria-hidden="true">⚛</div>
+          <h2 className="empty-state__title">No measurement data</h2>
+          <p className="empty-state__text">The simulation returned no counts. Try running again.</p>
+        </div>
+      </section>
+    )
+  }
+
+  const actualValues = allStates.map(s => safeCounts[s] || 0)
+  const idealValues  = allStates.map(s => safeIdeal[s] || 0)
 
   const chartData = {
     labels: allStates.map(s => `|${s}⟩`),
@@ -80,7 +98,7 @@ export default function ResultsPanel({ result }) {
       tooltip: {
         callbacks: {
           label: ctx => {
-            const pct = ((ctx.raw / shots) * 100).toFixed(1)
+            const pct = ((ctx.raw / safeShots) * 100).toFixed(1)
             return `${ctx.dataset.label}: ${ctx.raw} (${pct}%)`
           },
         },
@@ -105,17 +123,17 @@ export default function ResultsPanel({ result }) {
 
   // ── Stats ──────────────────────────────────────────────────────
   const topState = allStates.reduce((a, b) =>
-    (counts[a] || 0) >= (counts[b] || 0) ? a : b
+    (safeCounts[a] || 0) >= (safeCounts[b] || 0) ? a : b
   )
-  const topCount  = counts[topState] || 0
-  const topPct    = ((topCount / shots) * 100).toFixed(1)
+  const topCount  = safeCounts[topState] || 0
+  const topPct    = ((topCount / safeShots) * 100).toFixed(1)
 
   // Simple fidelity: fraction of shots that landed on an ideal state
-  const idealStateSet = new Set(Object.keys(ideal_counts))
+  const idealStateSet = new Set(Object.keys(safeIdeal))
   const correctShots  = allStates
     .filter(s => idealStateSet.has(s))
-    .reduce((sum, s) => sum + (counts[s] || 0), 0)
-  const fidelity = ((correctShots / shots) * 100).toFixed(1)
+    .reduce((sum, s) => sum + (safeCounts[s] || 0), 0)
+  const fidelity = ((correctShots / safeShots) * 100).toFixed(1)
 
   // Noise level badge color
   function noiseBadgeClass(p) {
@@ -134,7 +152,7 @@ export default function ResultsPanel({ result }) {
         <div>
           <h2 className="results-title">{circuit_name}</h2>
           <p className="results-subtitle">
-            {shots.toLocaleString()} shots · error rate {(error_rate * 100).toFixed(1)}%
+            {safeShots.toLocaleString()} shots · error rate {(error_rate * 100).toFixed(1)}%
           </p>
         </div>
         <span className={`badge ${noiseBadgeClass(error_rate)}`}>
