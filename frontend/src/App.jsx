@@ -27,7 +27,9 @@ export default function App() {
     history,
     loading,
     error,
+    loadParams,
     runSimulation,
+    loadSimulation,
     clearError,
   } = useSimulation()
 
@@ -73,13 +75,14 @@ export default function App() {
         <ControlsPanel
           circuits={circuits}
           loading={loading}
+          loadParams={loadParams}
           onRun={runSimulation}
         />
         <ResultsPanel result={result} />
       </main>
 
       {/* ── History ─────────────────────────────────────────────── */}
-      <HistoryPanel history={history} />
+      <HistoryPanel history={history} onHistoryClick={loadSimulation} />
 
     </div>
   )

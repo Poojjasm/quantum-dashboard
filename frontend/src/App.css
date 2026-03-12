@@ -188,6 +188,46 @@
   color: var(--color-text);
 }
 
+/* ── Noise Preset Buttons ──────────────────────────────────────── */
+.noise-presets {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.375rem;
+}
+
+.preset-btn {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3125rem 0.375rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.preset-btn:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.preset-btn--active {
+  background: rgba(108, 99, 255, 0.2);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.preset-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .form-range {
   -webkit-appearance: none;
   appearance: none;
@@ -411,6 +451,19 @@
   margin: 0 auto;
 }
 
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.history-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
 .history-empty {
   font-size: 0.875rem;
   color: var(--color-text-muted);
@@ -422,6 +475,7 @@
   gap: 0.5rem;
 }
 
+/* history-item is now a <button> for accessibility + click events */
 .history-item {
   display: flex;
   align-items: center;
@@ -431,11 +485,27 @@
   border-radius: var(--radius);
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
-  transition: border-color 0.15s;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  font-family: inherit;
+  text-align: left;
 }
 
 .history-item:hover {
   border-color: var(--color-primary);
+  background: var(--color-surface);
+  transform: translateY(-1px);
+}
+
+.history-item:active {
+  transform: translateY(0);
+}
+
+.history-id {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  min-width: 2rem;
 }
 
 .history-circuit {

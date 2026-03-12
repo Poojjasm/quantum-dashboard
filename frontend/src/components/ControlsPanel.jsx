@@ -3,37 +3,65 @@
  * =========================================
  * Left sidebar with:
  *   - Circuit selector dropdown (populated from /api/circuits)
+ *   - Noise preset quick-pick buttons
  *   - Error rate slider (0.00 – 0.20)
  *   - Shots input (100 – 8192)
  *   - Run Simulation button
+ *
+ * Props:
+ *   circuits    — array from /api/circuits
+ *   loading     — bool; disables form while simulation runs
+ *   loadParams  — {circuit, error_rate, shots} set when user clicks a history
+ *                 item; this component syncs its local state to match
+ *   onRun       — callback(params) called on form submit
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-// Map circuit id → description shown below the dropdown
 const CIRCUIT_DESCRIPTIONS = {
-  bell: 'Entangles 2 qubits. With no noise, measures only |00⟩ and |11⟩.',
-  ghz: 'Entangles 3 qubits. Ideal result: equal mix of |000⟩ and |111⟩.',
-  teleportation: 'Transfers qubit state using entanglement. Bob\'s qubit always matches Alice\'s original state.',
-  grover: 'Searches unsorted data. Amplifies the target state |11⟩ above all others.',
+  bell:          'Entangles 2 qubits. With no noise, measures only |00⟩ and |11⟩.',
+  ghz:           'Entangles 3 qubits. Ideal result: equal mix of |000⟩ and |111⟩.',
+  teleportation: "Transfers qubit state using entanglement. Bob's qubit always matches Alice's original state.",
+  grover:        'Searches unsorted data. Amplifies the target state |11⟩ above all others.',
 }
 
-export default function ControlsPanel({ circuits, loading, onRun }) {
-  const [circuit, setCircuit]       = useState('bell')
-  const [errorRate, setErrorRate]   = useState(0.05)
-  const [shots, setShots]           = useState(1024)
+// Quick preset buttons — let users jump to representative noise levels
+// without dragging the slider. Real-world context labels help intuition.
+const NOISE_PRESETS = [
+  { label: 'Ideal',    value: 0.00, title: 'No noise — perfect quantum computer' },
+  { label: 'Low',      value: 0.01, title: '~IBM best hardware (2024)' },
+  { label: 'Moderate', value: 0.05, title: 'Errors clearly visible in chart' },
+  { label: 'High',     value: 0.10, title: 'Algorithms start failing' },
+  { label: 'Extreme',  value: 0.20, title: 'Nearly random results' },
+]
+
+export default function ControlsPanel({ circuits, loading, loadParams, onRun }) {
+  const [circuit, setCircuit]     = useState('bell')
+  const [errorRate, setErrorRate] = useState(0.05)
+  const [shots, setShots]         = useState(1024)
+
+  // ── Sync form when a history item is clicked ──────────────────
+  // loadParams comes from the parent (App) when the user clicks a
+  // history entry. useEffect watches it and updates local state.
+  // This is the "controlled from outside" pattern in React.
+  useEffect(() => {
+    if (!loadParams) return
+    setCircuit(loadParams.circuit)
+    setErrorRate(loadParams.error_rate)
+    setShots(loadParams.shots)
+  }, [loadParams])
 
   function handleSubmit(e) {
     e.preventDefault()
-    onRun({ circuit, error_rate: errorRate, shots })
+    const clampedShots = Math.max(100, Math.min(8192, shots || 1024))
+    onRun({ circuit, error_rate: errorRate, shots: clampedShots })
   }
 
-  // Color the error rate label based on severity
   function errorRateColor(p) {
-    if (p === 0)    return 'var(--color-success)'
-    if (p <= 0.01)  return 'var(--color-success)'
-    if (p <= 0.05)  return 'var(--color-warning)'
-    if (p <= 0.10)  return 'var(--color-danger)'
+    if (p === 0)   return 'var(--color-success)'
+    if (p <= 0.01) return 'var(--color-success)'
+    if (p <= 0.05) return 'var(--color-warning)'
+    if (p <= 0.10) return 'var(--color-danger)'
     return '#ff4444'
   }
 
@@ -43,7 +71,7 @@ export default function ControlsPanel({ circuits, loading, onRun }) {
 
       <form onSubmit={handleSubmit} className="controls-form">
 
-        {/* ── Circuit Selector ─────────────────────────────────── */}
+        {/* ── Circuit Selector ───────────────────────────────────── */}
         <div className="form-group">
           <label htmlFor="circuit-select" className="form-label">
             Quantum Circuit
@@ -70,17 +98,31 @@ export default function ControlsPanel({ circuits, loading, onRun }) {
           )}
         </div>
 
-        {/* ── Error Rate Slider ───────────────────────────────── */}
+        {/* ── Error Rate ─────────────────────────────────────────── */}
         <div className="form-group">
           <label htmlFor="error-rate" className="form-label">
             Error Rate&nbsp;
-            <span
-              className="form-value"
-              style={{ color: errorRateColor(errorRate) }}
-            >
+            <span className="form-value" style={{ color: errorRateColor(errorRate) }}>
               {(errorRate * 100).toFixed(1)}%
             </span>
           </label>
+
+          {/* Preset quick-pick buttons */}
+          <div className="noise-presets" role="group" aria-label="Noise presets">
+            {NOISE_PRESETS.map(p => (
+              <button
+                key={p.value}
+                type="button"
+                className={`preset-btn ${errorRate === p.value ? 'preset-btn--active' : ''}`}
+                onClick={() => setErrorRate(p.value)}
+                disabled={loading}
+                title={p.title}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+
           <input
             id="error-rate"
             type="range"
@@ -98,7 +140,7 @@ export default function ControlsPanel({ circuits, loading, onRun }) {
           </div>
         </div>
 
-        {/* ── Shots Input ─────────────────────────────────────── */}
+        {/* ── Shots ──────────────────────────────────────────────── */}
         <div className="form-group">
           <label htmlFor="shots" className="form-label">
             Shots (measurements)
@@ -111,7 +153,7 @@ export default function ControlsPanel({ circuits, loading, onRun }) {
             max="8192"
             step="128"
             value={shots}
-            onChange={e => setShots(parseInt(e.target.value, 10))}
+            onChange={e => setShots(parseInt(e.target.value, 10) || 1024)}
             disabled={loading}
           />
           <p className="form-hint">
@@ -119,7 +161,7 @@ export default function ControlsPanel({ circuits, loading, onRun }) {
           </p>
         </div>
 
-        {/* ── Submit ──────────────────────────────────────────── */}
+        {/* ── Submit ─────────────────────────────────────────────── */}
         <button
           type="submit"
           className={`btn-run ${loading ? 'btn-run--loading' : ''}`}

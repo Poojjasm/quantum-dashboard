@@ -29,6 +29,9 @@ export function useSimulation() {
   const [history, setHistory]     = useState([])
   const [loading, setLoading]     = useState(false)
   const [error, setError]         = useState(null)
+  // loadParams: when set, ControlsPanel syncs its form to these values.
+  // Set by loadSimulation() when user clicks a history item.
+  const [loadParams, setLoadParams] = useState(null)
 
   // ── Fetch available circuits on mount ────────────────────────────
   useEffect(() => {
@@ -78,7 +81,77 @@ export function useSimulation() {
     }
   }, [fetchHistory])
 
+  // ── Load a past simulation by ID ─────────────────────────────
+  // Called when user clicks a history item.
+  // Fetches /api/results/<id>, rebuilds the result shape the
+  // ResultsPanel expects, and syncs the ControlsPanel form.
+  const loadSimulation = useCallback(async (sim) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`${API_BASE}/api/results/${sim.id}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || `Server error ${response.status}`)
+      }
+
+      // /api/results returns { simulation: {...}, results: [{state, count}, ...] }
+      // Reshape into the same format runSimulation produces so ResultsPanel
+      // doesn't need to know the difference.
+      const countsObj = {}
+      for (const row of data.results) {
+        countsObj[row.state] = row.count
+      }
+
+      // Rebuild ideal_counts from the static distributions in the hook
+      // by re-fetching nothing — we infer from circuit name.
+      // Instead, just run a quick ideal fetch via simulate with error_rate=0
+      // (this is fast — AerSimulator ideal path takes ~30ms).
+      const idealResp = await fetch(`${API_BASE}/api/simulate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          circuit: data.simulation.circuit_id,
+          error_rate: 0,
+          shots: data.simulation.shots,
+        }),
+      })
+      const idealData = await idealResp.json()
+
+      setResult({
+        simulation_id: data.simulation.id,
+        circuit:       data.simulation.circuit_id,
+        circuit_name:  data.simulation.circuit_name,
+        error_rate:    data.simulation.error_rate,
+        shots:         data.simulation.shots,
+        counts:        countsObj,
+        ideal_counts:  idealData.counts,   // error_rate=0 gives us the ideal
+        noise_label:   data.simulation.error_rate === 0
+          ? 'Ideal (no noise) — theoretical perfect quantum computer'
+          : `Loaded from history — error rate ${(data.simulation.error_rate * 100).toFixed(1)}%`,
+      })
+
+      // Sync the controls form to match this historical run
+      setLoadParams({
+        circuit:    data.simulation.circuit_id,
+        error_rate: data.simulation.error_rate,
+        shots:      data.simulation.shots,
+      })
+
+      fetchHistory()
+    } catch (err) {
+      setError(err.message || 'Failed to load simulation')
+    } finally {
+      setLoading(false)
+    }
+  }, [fetchHistory])
+
   const clearError = useCallback(() => setError(null), [])
 
-  return { circuits, result, history, loading, error, runSimulation, clearError }
+  return {
+    circuits, result, history, loading, error, loadParams,
+    runSimulation, loadSimulation, clearError,
+  }
 }

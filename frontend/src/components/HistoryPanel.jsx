@@ -1,11 +1,11 @@
 /**
  * HistoryPanel.jsx — Recent Simulations List
  * ============================================
- * Bottom bar showing the last 10 simulations from /api/history.
- * Clicking a row would load that simulation (future feature).
+ * Shows the last 10 simulations.
+ * Clicking a row loads that simulation's result into the chart
+ * and syncs the controls form — via onHistoryClick(sim) callback.
  */
 
-// Circuit id → short display name
 const CIRCUIT_LABELS = {
   bell:          'Bell',
   ghz:           'GHZ',
@@ -21,7 +21,7 @@ function noiseClass(errorRate) {
   return 'noise-extreme'
 }
 
-export default function HistoryPanel({ history }) {
+export default function HistoryPanel({ history, onHistoryClick }) {
   if (!history || history.length === 0) {
     return (
       <section className="history-panel">
@@ -33,11 +33,21 @@ export default function HistoryPanel({ history }) {
 
   return (
     <section className="history-panel">
-      <h3 className="panel-title">Recent Simulations</h3>
+      <div className="history-header">
+        <h3 className="panel-title" style={{ margin: 0 }}>Recent Simulations</h3>
+        <span className="history-hint">Click any run to reload it</span>
+      </div>
 
       <div className="history-list">
         {history.map(sim => (
-          <div key={sim.id} className="history-item">
+          <button
+            key={sim.id}
+            className="history-item"
+            onClick={() => onHistoryClick(sim)}
+            title={`Load simulation #${sim.id} — ${CIRCUIT_LABELS[sim.circuit_id] || sim.circuit_id}, ${(sim.error_rate * 100).toFixed(1)}% error`}
+            type="button"
+          >
+            <span className="history-id">#{sim.id}</span>
             <span className="history-circuit">
               {CIRCUIT_LABELS[sim.circuit_id] || sim.circuit_id}
             </span>
@@ -50,7 +60,7 @@ export default function HistoryPanel({ history }) {
             <span className="history-time">
               {formatTime(sim.created_at)}
             </span>
-          </div>
+          </button>
         ))}
       </div>
     </section>
