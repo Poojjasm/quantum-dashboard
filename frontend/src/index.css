@@ -1,0 +1,62 @@
+/* ===================================================================
+   index.css — Global base styles
+   ===================================================================
+   Only truly global things live here:
+     - CSS custom properties (design tokens)
+     - Box-sizing reset
+     - Body defaults
+   All component styles go in App.css (scoped by class names).
+   =================================================================== */
+
+/* Import Google Fonts — must be first */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── Design Tokens ─────────────────────────────────────────────── */
+:root {
+  /* Colors */
+  --color-bg:           #0f1117;
+  --color-surface:      #1a1d27;
+  --color-surface-2:    #22263a;
+  --color-border:       #2e3250;
+  --color-primary:      #6c63ff;
+  --color-primary-dark: #574fd6;
+  --color-accent:       #00d2ff;
+  --color-success:      #4ade80;
+  --color-warning:      #facc15;
+  --color-danger:       #f87171;
+  --color-text:         #e2e8f0;
+  --color-text-muted:   #94a3b8;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Spacing */
+  --radius:   8px;
+  --radius-lg: 12px;
+
+  /* Shadows */
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Reset ─────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Base ──────────────────────────────────────────────────────── */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+

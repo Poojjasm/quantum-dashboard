@@ -42,6 +42,17 @@ flask-cors==6.0.2
 python-dotenv==1.2.2
 
 # ------------------------------------------
+# PRODUCTION SERVER
+# ------------------------------------------
+
+# Gunicorn: Production WSGI server for Railway deployment
+# Flask's built-in dev server is NOT safe for production (single-threaded,
+# no worker management, not hardened). Gunicorn spawns multiple worker
+# processes to handle concurrent requests efficiently.
+# Used in Procfile: gunicorn --chdir backend app:app --bind 0.0.0.0:$PORT
+gunicorn==23.0.0
+
+# ------------------------------------------
 # NOTE: No database driver needed!
 # SQLite is built directly into Python's standard library.
 # import sqlite3 works without any pip install.
