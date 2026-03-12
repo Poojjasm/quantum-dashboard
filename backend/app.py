@@ -28,6 +28,9 @@ HOW TO TEST (in a second terminal):
 
 import os
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env file in dev; env vars set directly in Railway for prod
 
 # ── Make sure Python can find our other backend modules ──────────────────────
 # When running `python backend/app.py`, Python adds backend/ to sys.path.
@@ -58,9 +61,13 @@ app = Flask(
     static_url_path="/static",
 )
 
-# CORS: allow any origin to call our API.
-# Without this, browser fetch() calls to localhost:5000 are blocked by default.
-CORS(app)
+# CORS: restrict to allowed origins in production.
+# ALLOWED_ORIGINS env var = comma-separated list, e.g.:
+#   "https://quantum-dashboard.vercel.app,https://quantum-dashboard-git-main.vercel.app"
+# Falls back to "*" in development (no env var set).
+_raw_origins = os.environ.get("ALLOWED_ORIGINS", "*")
+_origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else "*"
+CORS(app, origins=_origins)
 
 # Initialise database on startup — creates tables + seeds circuits if needed.
 # Safe to call every time: CREATE TABLE IF NOT EXISTS, INSERT OR IGNORE.

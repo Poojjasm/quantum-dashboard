@@ -85,7 +85,8 @@ export default function App() {
           onRun={runSimulation}
           onSweep={runSweep}
         />
-        <ResultsPanel result={result} />
+        {/* key forces a remount on each new result, retriggering the CSS entry animation */}
+        <ResultsPanel key={result?.simulation_id ?? 'empty'} result={result} />
       </main>
 
       {/* ── Noise Sweep Chart ───────────────────────────────────── */}
