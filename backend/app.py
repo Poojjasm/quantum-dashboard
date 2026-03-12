@@ -62,8 +62,7 @@ app = Flask(
 )
 
 # CORS: restrict to allowed origins in production.
-# ALLOWED_ORIGINS env var = comma-separated list, e.g.:
-#   "https://quantum-dashboard.vercel.app,https://quantum-dashboard-git-main.vercel.app"
+# ALLOWED_ORIGINS env var = your Vercel URL, set in Railway dashboard.
 # Falls back to "*" in development (no env var set).
 _raw_origins = os.environ.get("ALLOWED_ORIGINS", "*")
 _origins = [o.strip() for o in _raw_origins.split(",")] if _raw_origins != "*" else "*"
