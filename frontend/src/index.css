@@ -3,41 +3,39 @@
    =================================================================== */
 
 /* Import Google Fonts — must be first */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600;700&display=swap');
 
 /* ── Design Tokens ─────────────────────────────────────────────── */
 :root {
-  /* Colors */
-  --color-bg:           #080b14;
-  --color-surface:      #0f1320;
-  --color-surface-2:    #161c2e;
-  --color-border:       #1e2540;
-  --color-border-glow:  rgba(108, 99, 255, 0.3);
-  --color-primary:      #7c6fff;
-  --color-primary-dark: #6258e8;
-  --color-accent:       #00e5ff;
-  --color-accent-2:     #ff6ef7;
-  --color-success:      #4ade80;
-  --color-warning:      #fbbf24;
-  --color-danger:       #f87171;
-  --color-text:         #e8edf5;
-  --color-text-muted:   #7a8aaa;
+  /* Colors — light editorial palette */
+  --color-bg:           #fafaf7;
+  --color-surface:      #ffffff;
+  --color-surface-2:    #f4f0e8;
+  --color-border:       #ddd8ce;
+  --color-border-focus: #1a4fd6;
+  --color-primary:      #1a4fd6;
+  --color-primary-dark: #1340b8;
+  --color-accent:       #e07000;
+  --color-success:      #1a6b3c;
+  --color-warning:      #b45309;
+  --color-danger:       #c0392b;
+  --color-text:         #1a1a18;
+  --color-text-muted:   #7a7068;
+  --color-ink:          #2d2820;
 
   /* Typography */
-  --font-display: 'Orbitron', 'Courier New', monospace;
-  --font-sans:    'Outfit', system-ui, -apple-system, sans-serif;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
   --font-mono:    'Space Mono', 'Fira Code', monospace;
+  --font-hand:    'Caveat', cursive;
 
   /* Spacing */
-  --radius:    8px;
-  --radius-lg: 14px;
+  --radius:    6px;
+  --radius-lg: 10px;
 
-  /* Glow shadows */
-  --glow-primary: 0 0 20px rgba(124, 111, 255, 0.35);
-  --glow-accent:  0 0 20px rgba(0, 229, 255, 0.3);
-  --shadow:       0 4px 32px rgba(0, 0, 0, 0.6);
-  --shadow-card:  0 2px 0 rgba(255,255,255,0.03) inset,
-                  0 8px 32px rgba(0, 0, 0, 0.5);
+  /* Shadows — subtle, paper-like */
+  --shadow:      0 1px 4px rgba(0, 0, 0, 0.07), 0 4px 16px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
 /* ── Reset ─────────────────────────────────────────────────────── */
@@ -47,20 +45,32 @@
   padding: 0;
 }
 
-/* ── Base ──────────────────────────────────────────────────────── */
+/* ── Atom cursor (default state) ───────────────────────────────── */
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='8' cy='8' r='2.5' fill='%231a4fd6'/%3E%3Cellipse cx='8' cy='8' rx='11' ry='4' stroke='%231a4fd6' stroke-width='1.4' fill='none'/%3E%3Cellipse cx='8' cy='8' rx='11' ry='4' stroke='%231a4fd6' stroke-width='1.4' fill='none' transform='rotate(60 8 8)'/%3E%3Cellipse cx='8' cy='8' rx='11' ry='4' stroke='%231a4fd6' stroke-width='1.4' fill='none' transform='rotate(120 8 8)'/%3E%3C/svg%3E") 8 8, auto;
 }
 
+/* Pointer cursor for interactive elements */
+button, a, input[type="range"], select,
+.history-item, [role="button"] {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='8' cy='8' r='2.5' fill='%23e07000'/%3E%3Cellipse cx='8' cy='8' rx='11' ry='4' stroke='%23e07000' stroke-width='1.4' fill='none'/%3E%3Cellipse cx='8' cy='8' rx='11' ry='4' stroke='%23e07000' stroke-width='1.4' fill='none' transform='rotate(60 8 8)'/%3E%3Cellipse cx='8' cy='8' rx='11' ry='4' stroke='%23e07000' stroke-width='1.4' fill='none' transform='rotate(120 8 8)'/%3E%3C/svg%3E") 8 8, pointer;
+}
+
+/* ── Base ──────────────────────────────────────────────────────── */
 body {
   font-family: var(--font-sans);
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.6;
   min-height: 100vh;
-  /* Subtle dot-grid background — like a circuit board */
+  /* Graph paper background — two grid sizes */
   background-image:
-    radial-gradient(rgba(124, 111, 255, 0.12) 1px, transparent 1px);
-  background-size: 28px 28px;
+    linear-gradient(rgba(26, 79, 214, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 79, 214, 0.07) 1px, transparent 1px),
+    linear-gradient(rgba(26, 79, 214, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 79, 214, 0.035) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
+  background-position: -1px -1px;
 }

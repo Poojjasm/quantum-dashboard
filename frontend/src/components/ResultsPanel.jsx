@@ -1,13 +1,8 @@
 /**
  * ResultsPanel.jsx — Simulation Results + Bar Chart
- * ===================================================
- * Shows after a simulation completes:
- *   - Circuit name, error rate, shots
- *   - Noise severity label
- *   - Bar chart: actual counts (blue) vs ideal counts (purple dashed)
- *   - Key stats: most common state, fidelity estimate
  */
 
+import { useState, useEffect } from 'react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,8 +14,28 @@ import {
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
 
-// Register Chart.js components (required by react-chartjs-2 v5)
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+
+// Count-up animation hook — animates a number from 0 to target over `duration`ms
+function useCountUp(target, decimals = 1, duration = 750) {
+  const [display, setDisplay] = useState('0.0')
+  useEffect(() => {
+    const targetNum = parseFloat(target)
+    if (isNaN(targetNum)) return
+    let startTime = null
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp
+      const elapsed = timestamp - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplay((eased * targetNum).toFixed(decimals))
+      if (progress < 1) requestAnimationFrame(animate)
+    }
+    requestAnimationFrame(animate)
+  }, [target])
+  return display
+}
 
 export default function ResultsPanel({ result }) {
   if (!result) {
@@ -39,17 +54,15 @@ export default function ResultsPanel({ result }) {
 
   const { circuit_name, error_rate, shots, counts, ideal_counts, noise_label } = result
 
-  // Defensive guards: treat missing/null counts as empty objects, shots=0 as 1
+  // Defensive guards
   const safeCounts = counts || {}
   const safeIdeal  = ideal_counts || {}
   const safeShots  = shots > 0 ? shots : 1
 
-  // Build chart data: all states that appear in either actual or ideal
   const allStates = Array.from(
     new Set([...Object.keys(safeCounts), ...Object.keys(safeIdeal)])
   ).sort()
 
-  // If there are no states at all, show a fallback rather than crash
   if (allStates.length === 0) {
     return (
       <section className="results-panel results-panel--empty">
@@ -71,19 +84,18 @@ export default function ResultsPanel({ result }) {
       {
         label: 'Simulated (with noise)',
         data: actualValues,
-        backgroundColor: 'rgba(108, 99, 255, 0.8)',
-        borderColor:     'rgba(108, 99, 255, 1)',
+        backgroundColor: 'rgba(26, 79, 214, 0.7)',
+        borderColor:     'rgba(26, 79, 214, 0.95)',
         borderWidth: 1,
-        borderRadius: 4,
+        borderRadius: 3,
       },
       {
         label: 'Ideal (no noise)',
         data: idealValues,
-        backgroundColor: 'rgba(0, 210, 255, 0.25)',
-        borderColor:     'rgba(0, 210, 255, 0.9)',
+        backgroundColor: 'rgba(224, 112, 0, 0.18)',
+        borderColor:     'rgba(224, 112, 0, 0.85)',
         borderWidth: 2,
-        borderRadius: 4,
-        borderDash: [6, 3],
+        borderRadius: 3,
       },
     ],
   }
@@ -93,9 +105,18 @@ export default function ResultsPanel({ result }) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        labels: { color: '#e2e8f0', font: { size: 13 } },
+        labels: {
+          color: '#7a7068',
+          font: { size: 12, family: "'Inter', sans-serif" },
+          boxWidth: 14,
+        },
       },
       tooltip: {
+        backgroundColor: 'rgba(255,255,255,0.97)',
+        titleColor: '#1a1a18',
+        bodyColor: '#7a7068',
+        borderColor: '#ddd8ce',
+        borderWidth: 1,
         callbacks: {
           label: ctx => {
             const pct = ((ctx.raw / safeShots) * 100).toFixed(1)
@@ -106,36 +127,53 @@ export default function ResultsPanel({ result }) {
     },
     scales: {
       x: {
-        ticks: { color: '#94a3b8', font: { size: 13 } },
-        grid:  { color: 'rgba(255,255,255,0.05)' },
+        ticks: {
+          color: '#7a7068',
+          font: { size: 13, family: "'Space Mono', monospace" },
+        },
+        grid: { color: 'rgba(0,0,0,0.05)' },
       },
       y: {
-        ticks: { color: '#94a3b8' },
-        grid:  { color: 'rgba(255,255,255,0.05)' },
+        ticks: { color: '#7a7068', font: { size: 12 } },
+        grid:  { color: 'rgba(0,0,0,0.05)' },
         title: {
           display: true,
           text: 'Count',
-          color: '#94a3b8',
+          color: '#7a7068',
+          font: { size: 12, family: "'Inter', sans-serif" },
         },
       },
     },
   }
 
-  // ── Stats ──────────────────────────────────────────────────────
-  const topState = allStates.reduce((a, b) =>
+  // Stats
+  const topState  = allStates.reduce((a, b) =>
     (safeCounts[a] || 0) >= (safeCounts[b] || 0) ? a : b
   )
   const topCount  = safeCounts[topState] || 0
   const topPct    = ((topCount / safeShots) * 100).toFixed(1)
 
-  // Simple fidelity: fraction of shots that landed on an ideal state
   const idealStateSet = new Set(Object.keys(safeIdeal))
   const correctShots  = allStates
     .filter(s => idealStateSet.has(s))
     .reduce((sum, s) => sum + (safeCounts[s] || 0), 0)
   const fidelity = ((correctShots / safeShots) * 100).toFixed(1)
 
-  // Noise level badge color
+  // Animated display values
+  const fidelityDisplay = useCountUp(fidelity)
+  const topPctDisplay   = useCountUp(topPct)
+
+  // Handwritten annotation text based on noise level
+  function getAnnotation(p) {
+    if (p === 0)    return null
+    if (p <= 0.01)  return 'very close to ideal — barely any difference'
+    if (p <= 0.05)  return '← these extra states come from noise'
+    if (p <= 0.10)  return 'noise is dominating — algorithm struggling'
+    return 'nearly random — the circuit has broken down'
+  }
+
+  const annotation = getAnnotation(error_rate)
+
   function noiseBadgeClass(p) {
     if (p === 0)    return 'badge--ideal'
     if (p <= 0.01)  return 'badge--low'
@@ -152,7 +190,7 @@ export default function ResultsPanel({ result }) {
         <div>
           <h2 className="results-title">{circuit_name}</h2>
           <p className="results-subtitle">
-            {safeShots.toLocaleString()} shots · error rate {(error_rate * 100).toFixed(1)}%
+            {safeShots.toLocaleString()} shots · {(error_rate * 100).toFixed(1)}% error rate
           </p>
         </div>
         <span className={`badge ${noiseBadgeClass(error_rate)}`}>
@@ -167,16 +205,23 @@ export default function ResultsPanel({ result }) {
         <Bar data={chartData} options={chartOptions} />
       </div>
 
+      {/* ── Handwritten annotation ──────────────────────────────── */}
+      {annotation && (
+        <div className="chart-callout">
+          <span className="chart-callout__text">{annotation}</span>
+        </div>
+      )}
+
       {/* ── Stats Row ──────────────────────────────────────────── */}
       <div className="stats-row">
         <div className="stat-card">
           <span className="stat-label">Top State</span>
           <span className="stat-value">{`|${topState}⟩`}</span>
-          <span className="stat-sub">{topCount} shots ({topPct}%)</span>
+          <span className="stat-sub">{topCount} shots ({topPctDisplay}%)</span>
         </div>
         <div className="stat-card">
           <span className="stat-label">Fidelity</span>
-          <span className="stat-value">{fidelity}%</span>
+          <span className="stat-value">{fidelityDisplay}%</span>
           <span className="stat-sub">shots on ideal states</span>
         </div>
         <div className="stat-card">
