@@ -1,0 +1,29 @@
+[project]
+name = "quantum-dashboard"
+version = "0.1.0"
+description = "Quantum Circuit Error Analyzer — simulate depolarizing noise on real quantum algorithms"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.1.0",
+    "flask-cors>=4.0.0",
+    "qiskit>=2.0.0",
+    "qiskit-aer>=0.15.0",
+    "python-dotenv>=1.0.0",
+    "gunicorn>=21.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["backend"]
+
+[tool.setuptools]
+packages = []
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
