@@ -173,6 +173,14 @@
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   box-shadow: var(--shadow-card);
+  transition: box-shadow 0.3s ease;
+}
+
+.controls-panel:hover {
+  box-shadow:
+    var(--shadow-card),
+    0 0 0 3px rgba(26, 79, 214, 0.1),
+    0 6px 32px rgba(26, 79, 214, 0.12);
 }
 
 .controls-form {

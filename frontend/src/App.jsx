@@ -15,6 +15,7 @@
  */
 
 import './App.css'
+import { useEffect } from 'react'
 import { useSimulation } from './hooks/useSimulation'
 import ControlsPanel  from './components/ControlsPanel'
 import ResultsPanel   from './components/ResultsPanel'
@@ -22,6 +23,52 @@ import FidelityChart  from './components/FidelityChart'
 import HistoryPanel   from './components/HistoryPanel'
 
 export default function App() {
+  // ── Cursor halo effect ─────────────────────────────────────────
+  useEffect(() => {
+    const inner = document.createElement('div')
+    const outer = document.createElement('div')
+    inner.className = 'cursor-halo cursor-halo--inner'
+    outer.className = 'cursor-halo cursor-halo--outer'
+    document.body.appendChild(outer)
+    document.body.appendChild(inner)
+
+    let mx = window.innerWidth / 2
+    let my = window.innerHeight / 2
+    let ix = mx, iy = my
+    let ox = mx, oy = my
+    let rafId
+
+    const onMove = (e) => { mx = e.clientX; my = e.clientY }
+    document.addEventListener('mousemove', onMove)
+
+    const loop = () => {
+      ix += (mx - ix) * 0.22
+      iy += (my - iy) * 0.22
+      ox += (mx - ox) * 0.07
+      oy += (my - oy) * 0.07
+      inner.style.transform = `translate(${ix}px,${iy}px) translate(-50%,-50%)`
+      outer.style.transform = `translate(${ox}px,${oy}px) translate(-50%,-50%)`
+      rafId = requestAnimationFrame(loop)
+    }
+    rafId = requestAnimationFrame(loop)
+
+    const INTERACTIVE = 'button, a, input, select, .history-item, [role="button"]'
+    const onOver = (e) => {
+      const hit = Boolean(e.target.closest(INTERACTIVE))
+      inner.classList.toggle('cursor-halo--active', hit)
+      outer.classList.toggle('cursor-halo--active', hit)
+    }
+    document.addEventListener('mouseover', onOver)
+
+    return () => {
+      cancelAnimationFrame(rafId)
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseover', onOver)
+      inner.remove()
+      outer.remove()
+    }
+  }, [])
+
   const {
     circuits,
     result,
