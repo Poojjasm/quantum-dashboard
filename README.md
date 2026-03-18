@@ -1,13 +1,18 @@
 # Quantum Circuit Error Analyzer Dashboard
 
 > A full-stack web app that simulates quantum circuits under realistic noise conditions
-> and visualizes how errors degrade quantum computation — built as a 2-week learning project.
+> and visualizes how errors degrade quantum computation.
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=flat&logo=flask)](https://flask.palletsprojects.com/)
-[![Qiskit](https://img.shields.io/badge/Qiskit-0.45-6929C4?style=flat&logo=qiskit)](https://qiskit.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.1-000000?style=flat&logo=flask)](https://flask.palletsprojects.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
+[![Qiskit](https://img.shields.io/badge/Qiskit-2.x-6929C4?style=flat&logo=qiskit)](https://qiskit.org/)
+[![uv](https://img.shields.io/badge/uv-managed-DE5FE9?style=flat)](https://docs.astral.sh/uv/)
+[![Tests](https://img.shields.io/badge/tests-89%20passing-4ade80?style=flat)](#testing)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=flat&logo=vercel)](https://quantum-dashboard-jade.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-In%20Progress-orange)](LEARNING_LOG.md)
+
+**Live:** [quantum-dashboard-jade.vercel.app](https://quantum-dashboard-jade.vercel.app)
 
 ---
 
@@ -20,35 +25,36 @@ This dashboard lets you explore that problem interactively:
 
 1. **Pick a quantum circuit** — Bell State, GHZ State, Quantum Teleportation, or Grover's Algorithm
 2. **Set an error rate** — from 0% (perfect, theoretical) to 20% (very noisy)
-3. **Hit Simulate** — Qiskit runs the circuit with your noise level
-4. **See the results** — bar chart shows measurement distribution vs ideal
-
-The visual difference between the ideal and noisy results is exactly what thousands of
-quantum researchers are working to minimize.
+3. **Hit Simulate** — Qiskit runs the circuit with your noise level on the backend
+4. **See the results** — bar chart compares your noisy result against the ideal
+5. **Run a Noise Sweep** — plot how fidelity degrades across 8 error rates at once
 
 ---
 
 ## Features
 
 - **4 Quantum Circuits** — Bell State, GHZ State, Quantum Teleportation, Grover's Algorithm
-- **Adjustable Noise** — Depolarizing error model, 0–20% error rate slider
-- **Live Visualization** — Chart.js bar charts updating in real time
-- **Simulation History** — All past runs saved to SQLite database
-- **REST API** — Clean Flask endpoints for circuit selection and simulation
-- **Educational UI** — Every circuit has an explanation for learners
+- **Adjustable Noise** — Depolarizing error model, 0–20% error rate with preset buttons
+- **Live Visualization** — Chart.js bar charts comparing noisy vs ideal distributions
+- **Noise Sweep** — Fidelity-vs-error-rate line chart across 8 data points with live progress
+- **Simulation History** — All past runs saved to SQLite, displayed in the history panel
+- **REST API** — Clean Flask endpoints for circuit selection, simulation, and history
+- **Deployed** — Flask on Railway, React/Vite on Vercel with proxy rewrite
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology | Why We Chose It |
-|---|---|---|
-| **Quantum Engine** | Qiskit + Aer | IBM's open-source quantum SDK — industry standard |
-| **Backend API** | Flask (Python) | Lightweight, easy to learn, perfect for REST APIs |
-| **Database** | SQLite | Zero-setup, file-based — no separate server needed |
-| **Frontend** | HTML5 + Vanilla JS | No framework complexity — pure fundamentals |
-| **Visualization** | Chart.js | Beautiful charts with minimal configuration |
-| **Version Control** | Git + GitHub | Industry-standard workflow |
+| Layer | Technology |
+|---|---|
+| **Quantum Engine** | Qiskit 2.x + Qiskit Aer |
+| **Backend API** | Flask 3.1 (Python 3.11) |
+| **Database** | SQLite (built into Python) |
+| **Frontend** | React 18 + Vite |
+| **Visualization** | Chart.js via react-chartjs-2 |
+| **Package Manager** | uv |
+| **Backend Deploy** | Railway (Gunicorn) |
+| **Frontend Deploy** | Vercel |
 
 ---
 
@@ -56,32 +62,48 @@ quantum researchers are working to minimize.
 
 ### Prerequisites
 
-- Python 3.11 or higher
-- pip (Python package manager)
-- Git
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) — `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Node.js 18+ (for frontend only)
 
-### Installation
+### Backend
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Poojjasm/quantum-dashboard.git
 cd quantum-dashboard
 
-# 2. Create a virtual environment (isolated Python sandbox)
-python -m venv venv
-
-# 3. Activate the virtual environment
-source venv/bin/activate        # macOS/Linux
-# venv\Scripts\activate         # Windows
-
-# 4. Install Python dependencies
-pip install -r requirements.txt
-
-# 5. Run the Flask backend
-python backend/app.py
+# Install dependencies and run
+uv sync
+uv run python backend/app.py
+# → API running at http://localhost:5001
 ```
 
-Open your browser to `http://localhost:5000` and start simulating!
+### Frontend (dev)
+
+```bash
+cd frontend
+npm install
+npm run dev
+# → UI at http://localhost:5173
+```
+
+Or just visit the live deployment at [quantum-dashboard-jade.vercel.app](https://quantum-dashboard-jade.vercel.app).
+
+---
+
+## Testing
+
+```bash
+uv run pytest
+# 89 tests across 4 test files — all passing
+```
+
+| Test File | What It Tests |
+|---|---|
+| `tests/test_quantum_engine.py` | Circuit builders, ideal counts, simulation output |
+| `tests/test_noise_models.py` | Noise model construction, describe_noise labels |
+| `tests/test_database.py` | SQLite CRUD — save, retrieve, history, filtering |
+| `tests/test_api.py` | All Flask endpoints — validation, success paths, error handlers |
 
 ---
 
@@ -89,19 +111,19 @@ Open your browser to `http://localhost:5000` and start simulating!
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/circuits` | Returns list of all 4 available circuits |
-| `POST` | `/api/simulate` | Runs a simulation with specified circuit + error rate |
+| `GET` | `/api/circuits` | Returns all 4 available circuits |
+| `POST` | `/api/simulate` | Runs a simulation with circuit + error rate |
 | `GET` | `/api/results/<id>` | Retrieves a past simulation by ID |
-| `GET` | `/api/history` | Returns last 20 simulations |
+| `GET` | `/api/history` | Returns recent simulations (supports `?limit` and `?circuit` filters) |
 
-**Example request:**
+**Example:**
 ```bash
-curl -X POST http://localhost:5000/api/simulate \
+curl -X POST https://web-production-187b7.up.railway.app/api/simulate \
   -H "Content-Type: application/json" \
   -d '{"circuit": "bell", "error_rate": 0.05, "shots": 1024}'
 ```
 
-See [API Reference](docs/API_REFERENCE.md) for full documentation.
+See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for full documentation.
 
 ---
 
@@ -110,75 +132,52 @@ See [API Reference](docs/API_REFERENCE.md) for full documentation.
 ```
 quantum-dashboard/
 ├── backend/
-│   ├── quantum_engine.py   # Qiskit circuit definitions
-│   ├── noise_models.py     # Depolarizing noise models
-│   ├── database.py         # SQLite CRUD operations
-│   └── app.py              # Flask REST API
+│   ├── quantum_engine.py    # Qiskit circuit builders + AerSimulator runner
+│   ├── noise_models.py      # Depolarizing noise model + noise labels
+│   ├── database.py          # SQLite schema, CRUD operations
+│   └── app.py               # Flask REST API (4 endpoints)
 ├── frontend/
-│   ├── index.html          # Single-page UI
-│   └── static/
-│       ├── js/app.js       # API calls + Chart.js rendering
-│       └── css/styles.css  # Styling
-├── docs/                   # Full specification kit (read these first!)
-├── tests/                  # Automated tests
-├── data/                   # SQLite database (auto-created)
-├── requirements.txt
-└── LEARNING_LOG.md         # Day-by-day learning journal
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── components/
+│   │   │   ├── ControlsPanel.jsx
+│   │   │   ├── ResultsPanel.jsx
+│   │   │   ├── FidelityChart.jsx
+│   │   │   └── HistoryPanel.jsx
+│   │   └── hooks/
+│   │       └── useSimulation.js
+│   └── vercel.json
+├── specs/
+│   ├── 001-quantum-engine/spec.md
+│   ├── 002-noise-models/spec.md
+│   ├── 003-flask-api/spec.md
+│   └── 004-noise-sweep/spec.md
+├── tests/
+│   ├── test_quantum_engine.py
+│   ├── test_noise_models.py
+│   ├── test_database.py
+│   └── test_api.py
+├── docs/
+├── pyproject.toml
+└── uv.lock
 ```
 
 ---
 
-## Documentation
+## Specs
 
-All detailed documentation lives in `/docs`:
+This project was developed using [spec-kit](https://github.com/thecodingwizard/spec-kit).
+Each feature has a specification in `specs/`:
 
-| Document | Description |
+| Spec | Feature |
 |---|---|
-| [SPEC_KIT.md](docs/SPEC_KIT.md) | Master specification, architecture, success criteria |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, component diagrams |
-| [QUANTUM_CONCEPTS.md](docs/QUANTUM_CONCEPTS.md) | Quantum computing 101 — read before coding |
-| [IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md) | Phase-by-phase build instructions |
-| [API_REFERENCE.md](docs/API_REFERENCE.md) | Complete API docs with curl examples |
-| [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Database design and SQL statements |
-| [TIMELINE.md](docs/TIMELINE.md) | 2-week daily schedule with hour estimates |
-| [TESTING_CHECKLIST.md](docs/TESTING_CHECKLIST.md) | Testing strategy and QA checklist |
-| [PROJECT_SETUP.md](docs/PROJECT_SETUP.md) | Detailed environment setup guide |
-| [LEARNING_RESOURCES.md](docs/LEARNING_RESOURCES.md) | Curated reading list by topic |
-
-**Start with:** [`docs/QUANTUM_CONCEPTS.md`](docs/QUANTUM_CONCEPTS.md) → then [`docs/PROJECT_SETUP.md`](docs/PROJECT_SETUP.md)
-
----
-
-## Project Status
-
-**Week 1 — Backend** *(In Progress)*
-- [ ] Phase 1: Quantum Engine (Days 1-2)
-- [ ] Phase 2: Noise Models (Days 3-4)
-- [ ] Phase 3: Database (Days 4-5)
-- [ ] Phase 4: Flask API (Days 6-7)
-
-**Week 2 — Frontend** *(Planned)*
-- [ ] Phase 5: HTML Structure (Days 8-9)
-- [ ] Phase 6: JavaScript Logic (Days 9-10)
-- [ ] Phase 7: Chart.js Visualization (Days 11-12)
-- [ ] Phase 8: Styling & Polish (Days 13-14)
-
-See [LEARNING_LOG.md](LEARNING_LOG.md) for daily progress updates.
-
----
-
-## About
-
-Built as a vibe coding project to explore:
-- **Quantum computing fundamentals** (Qiskit, noise models, circuit design)
-- **Full-stack web development** (Flask REST API + vanilla JS frontend)
-- **Data visualization** (Chart.js)
-- **Database design** (SQLite schema design)
-
-The learning journey is documented day-by-day in [LEARNING_LOG.md](LEARNING_LOG.md).
+| [001-quantum-engine](specs/001-quantum-engine/spec.md) | 4-circuit Qiskit simulation engine |
+| [002-noise-models](specs/002-noise-models/spec.md) | Depolarizing noise layer |
+| [003-flask-api](specs/003-flask-api/spec.md) | REST API endpoints |
+| [004-noise-sweep](specs/004-noise-sweep/spec.md) | Fidelity degradation sweep |
 
 ---
 
 ## License
 
-[MIT](LICENSE) — free to use, modify, and share.
+[MIT](LICENSE)
